@@ -32,7 +32,7 @@ public class VCIDrive implements MotorSafety{
 
 	  public static final double kDefaultExpirationTime = 0.1;
 	  public static final double kDefaultSensitivity = 0.5;
-	  public static final double kDefaultMaxOutput = 1.0;
+	  public static final double kDefaultMaxOutput = 14;
 	  protected static final int kMaxNumberOfMotors = 4;
 	  protected double m_sensitivity;
 	  protected double m_maxOutput;
@@ -44,19 +44,19 @@ public class VCIDrive implements MotorSafety{
 	public void setMaxRPM(double maxRPM) {
 		this.maxRPM = maxRPM;
 	}
-	private double kP = 15;
-	private double kI = 3;
+	private double kP = 1;
+	private double kI = 0;
 	private double kD = 0;
-	protected CANTalon m_frontLeftMotor;
-	  protected CANTalon m_frontRightMotor;
-	  protected CANTalon m_rearLeftMotor;
-	  protected CANTalon m_rearRightMotor;
-	  protected boolean m_allocatedSpeedControllers;
-	  protected static boolean kArcadeRatioCurve_Reported = false;
-	  protected static boolean kTank_Reported = false;
-	  protected static boolean kArcadeStandard_Reported = false;
-	  protected static boolean kMecanumCartesian_Reported = false;
-	  protected static boolean kMecanumPolar_Reported = false;
+	public CANTalon m_frontLeftMotor;
+	public CANTalon m_frontRightMotor;
+	public CANTalon m_rearLeftMotor;
+	public CANTalon m_rearRightMotor;
+  protected boolean m_allocatedSpeedControllers;
+  protected static boolean kArcadeRatioCurve_Reported = false;
+  protected static boolean kTank_Reported = false;
+  protected static boolean kArcadeStandard_Reported = false;
+  protected static boolean kMecanumCartesian_Reported = false;
+  protected static boolean kMecanumPolar_Reported = false;
 
 	  /**
 	   * Constructor for VCIDrive with 2 motors specified with channel numbers. Set up parameters for
@@ -149,10 +149,10 @@ public class VCIDrive implements MotorSafety{
 	    m_rearLeftMotor = requireNonNull(rearLeftMotor, "rearLeftMotor cannot be null");
 	    m_frontRightMotor = requireNonNull(frontRightMotor, "frontRightMotor cannot be null");
 	    m_rearRightMotor = requireNonNull(rearRightMotor, "rearRightMotor cannot be null");
-	    m_frontRightMotor.changeControlMode(TalonControlMode.Speed);
-	    m_frontLeftMotor.changeControlMode(TalonControlMode.Speed);
-	    m_rearRightMotor.changeControlMode(TalonControlMode.Speed);
-	    m_rearLeftMotor.changeControlMode(TalonControlMode.Speed);
+	    m_frontRightMotor.changeControlMode(TalonControlMode.PercentVbus);
+	    m_frontLeftMotor.changeControlMode(TalonControlMode.PercentVbus);
+	    m_rearRightMotor.changeControlMode(TalonControlMode.PercentVbus);
+	    m_rearLeftMotor.changeControlMode(TalonControlMode.PercentVbus);
 	    m_frontRightMotor.setPID(kP,kI,kD);
 	    m_frontRightMotor.setFeedbackDevice(FeedbackDevice.QuadEncoder);
 	    m_frontLeftMotor.setPID(kP,kI,kD);
@@ -168,6 +168,41 @@ public class VCIDrive implements MotorSafety{
 	    mecanumDrive_Cartesian(0, 0, 0, 0);
 	  }
 
+	  double multiplier = 1;
+	  
+	public void setVoltage(){  
+
+	 	multiplier = 1;
+	    m_frontRightMotor.changeControlMode(TalonControlMode.Voltage);
+	    m_frontLeftMotor.changeControlMode(TalonControlMode.Voltage);
+	    m_rearRightMotor.changeControlMode(TalonControlMode.Voltage);
+	    m_rearLeftMotor.changeControlMode(TalonControlMode.Voltage);
+	    m_frontRightMotor.setCurrentLimit(30);
+	    m_frontLeftMotor.setCurrentLimit(30);
+	    m_rearRightMotor.setCurrentLimit(30);
+	    m_rearLeftMotor.setCurrentLimit(30);
+	    m_frontRightMotor.EnableCurrentLimit(true);
+	    m_frontLeftMotor.EnableCurrentLimit(true);
+	    m_rearRightMotor.EnableCurrentLimit(true);
+	    m_rearLeftMotor.EnableCurrentLimit(true);
+	}
+	  
+	  public void setPercent(){
+		  	multiplier = 1;
+		    m_frontRightMotor.changeControlMode(TalonControlMode.PercentVbus);
+		    m_frontLeftMotor.changeControlMode(TalonControlMode.PercentVbus);
+		    m_rearRightMotor.changeControlMode(TalonControlMode.PercentVbus);
+		    m_rearLeftMotor.changeControlMode(TalonControlMode.PercentVbus);
+		    m_frontRightMotor.setCurrentLimit(30);
+		    m_frontLeftMotor.setCurrentLimit(30);
+		    m_rearRightMotor.setCurrentLimit(30);
+		    m_rearLeftMotor.setCurrentLimit(30);
+		    m_frontRightMotor.EnableCurrentLimit(true);
+		    m_frontLeftMotor.EnableCurrentLimit(true);
+		    m_rearRightMotor.EnableCurrentLimit(true);
+		    m_rearLeftMotor.EnableCurrentLimit(true);
+	  }
+	  
 
 	  /**
 	   * Drive method for Mecanum wheeled robots.
@@ -211,10 +246,10 @@ public class VCIDrive implements MotorSafety{
 	    wheelSpeeds[MotorType.kRearRight.value] = xIn + yIn - rotation;
 
 	    normalize(wheelSpeeds);
-	    m_frontLeftMotor.set(wheelSpeeds[MotorType.kFrontLeft.value] * m_maxOutput * maxRPM);
-	    m_frontRightMotor.set(wheelSpeeds[MotorType.kFrontRight.value] * m_maxOutput * maxRPM);
-	    m_rearLeftMotor.set(wheelSpeeds[MotorType.kRearLeft.value] * m_maxOutput * maxRPM);
-	    m_rearRightMotor.set(wheelSpeeds[MotorType.kRearRight.value] * m_maxOutput * maxRPM);
+	    m_frontLeftMotor.set(wheelSpeeds[MotorType.kFrontLeft.value] * m_maxOutput * multiplier);
+	    m_frontRightMotor.set(wheelSpeeds[MotorType.kFrontRight.value] * m_maxOutput * multiplier);
+	    m_rearLeftMotor.set(wheelSpeeds[MotorType.kRearLeft.value] * m_maxOutput * multiplier);
+	    m_rearRightMotor.set(wheelSpeeds[MotorType.kRearRight.value] * m_maxOutput * multiplier);
 	    
 
 	    if (m_safetyHelper != null) {
